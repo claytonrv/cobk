@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, Text, AsyncStorage, ScrollView, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, AsyncStorage, ScrollView, Image, StyleSheet, TouchableOpacity } from 'react-native';
+
+import socketio from 'socket.io-client';
 
 import StopList from '../components/StopList';
 
@@ -12,10 +14,19 @@ export default function List (){
     const [stops, setStops] = useState([]);
 
     useEffect(() => {
+        AsyncStorage.getItem('user').then(userid => {
+            const socket = socketio('http://192.168.0.13:3333', {
+                query: { userid }
+            });
 
+            socket.on('newStop', booking => {
+                loadStops();
+            })
+        });
+    }, []);
+
+    useEffect(() => {
         loadStops();
-        
-
     }, []);
 
     async function loadStops(){
@@ -29,23 +40,31 @@ export default function List (){
         setStops(response.data);
     }
 
-    const lastStop = stops[stops.length-1];
-
-    function handleRegistration(){
-
+    async function handleRegistration(){
+        const userid = await AsyncStorage.getItem('user');
+        const lastStop = stops[stops.length-1];
+        const stopType = (lastStop == null || lastStop.stopType == "OUT" ? "IN" : "OUT");
+        console.log(stopType);
+        api.post('/add_stop', {
+            stopType
+        }, {
+            headers: { userid }
+        });
     }
 
-    return <SafeAreaView style={styles.containe}>
-        <Image style={styles.logo} source={logo} />
+    return (
+        <View style={styles.container}>
+            <Image style={styles.logo} source={logo} />
 
-        <ScrollView>
-            <StopList stopList={stops} />
-        </ScrollView>
+            <ScrollView>
+                <StopList stopList={stops} />
+            </ScrollView>
 
-        <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Registrar {(lastStop == null || lastStop.stopType == "OUT" ? "entrada" : "saída")}</Text>
-        </TouchableOpacity>
-    </SafeAreaView>
+            <TouchableOpacity style={styles.button} onPress={handleRegistration}>
+                <Text style={styles.buttonText}>Registrar {((stops[stops.length-1]) == null || (stops[stops.length-1]).stopType == "OUT" ? "entrada" : "saída")}</Text>
+            </TouchableOpacity>
+        </View>
+    )
 }
 
 

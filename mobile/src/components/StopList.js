@@ -11,7 +11,7 @@ export default function StopList({ stopList }){
                 data={stopList}
                 keyExtractor={stop => stop._id}
                 showsHorizontalScrollIndicator={false}
-                showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={true}
                 renderItem={({ item }) => (
                     <View style={styles.listItem}>
                         <View style={{flex: 1, flexDirection: 'column'}}>

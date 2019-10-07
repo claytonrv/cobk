@@ -20,6 +20,17 @@ module.exports = {
             stopType: stopType,
             user: userid
         });
+
+        
+        const ownerSocket = req.connectedUsers[userid];
+
+        console.log(req.connectedUsers);
+        console.log(userid);
+
+        if(ownerSocket){
+            req.io.to(ownerSocket).emit('newStop', stop);
+        }
+
         return res.json(stop);
     }
 
